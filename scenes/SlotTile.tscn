@@ -1,0 +1,47 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://sprites/TileIcons/bat.png" type="Texture" id=1]
+[ext_resource path="res://scenes/SlotTile.gd" type="Script" id=2]
+
+[sub_resource type="Animation" id=1]
+resource_name = "SPIN_DOWN"
+length = 0.5
+step = 0.01
+tracks/0/type = "bezier"
+tracks/0/path = NodePath("Sprite:position:y")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"points": PoolRealArray( 2.35991, 0, 0, 0.1, 200, 0, -0.2, 0, 0.2, 0 ),
+"times": PoolRealArray( 0, 0.5 )
+}
+
+[sub_resource type="Animation" id=2]
+resource_name = "SPIN_UP"
+length = 0.7
+tracks/0/type = "bezier"
+tracks/0/path = NodePath("Sprite:position:y")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"points": PoolRealArray( -0.140083, -0.2, 0, 0.2, 0, 0, -0.1, -200, 0.1, 200 ),
+"times": PoolRealArray( 0, 0.7 )
+}
+
+[node name="SlotWheel" type="Node2D"]
+script = ExtResource( 2 )
+
+[node name="Sprite" type="Sprite" parent="."]
+position = Vector2( 0, -0.140083 )
+texture = ExtResource( 1 )
+centered = false
+
+[node name="Animations" type="AnimationPlayer" parent="."]
+anims/SPIN_DOWN = SubResource( 1 )
+anims/SPIN_UP = SubResource( 2 )
+
+[node name="Tween" type="Tween" parent="."]

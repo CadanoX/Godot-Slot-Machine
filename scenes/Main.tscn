@@ -1,0 +1,54 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://scenes/SlotMachine.gd" type="Script" id=1]
+[ext_resource path="res://fonts/Symtext.ttf" type="DynamicFontData" id=2]
+[ext_resource path="res://scenes/Main.gd" type="Script" id=3]
+
+[sub_resource type="Gradient" id=1]
+
+[sub_resource type="GradientTexture" id=2]
+gradient = SubResource( 1 )
+width = 1920
+
+[sub_resource type="DynamicFont" id=3]
+size = 40
+font_data = ExtResource( 2 )
+
+[node name="root" type="Node2D"]
+script = ExtResource( 3 )
+
+[node name="Background" type="Sprite" parent="."]
+modulate = Color( 0.639216, 0.25098, 0.239216, 1 )
+light_mask = 257
+scale = Vector2( 1, 1080 )
+texture = SubResource( 2 )
+centered = false
+
+[node name="Roll" type="Button" parent="."]
+margin_left = 1441.79
+margin_top = 881.984
+margin_right = 1782.79
+margin_bottom = 963.984
+custom_fonts/font = SubResource( 3 )
+text = "Roll"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ViewportContainer" type="ViewportContainer" parent="."]
+margin_left = 200.0
+margin_top = 100.0
+margin_right = 1200.0
+margin_bottom = 900.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Viewport" type="Viewport" parent="ViewportContainer"]
+size = Vector2( 1000, 800 )
+handle_input_locally = false
+render_target_update_mode = 3
+
+[node name="SlotMachine" type="Node2D" parent="ViewportContainer/Viewport"]
+script = ExtResource( 1 )
+[connection signal="button_down" from="Roll" to="." method="_on_Roll_button_down"]

@@ -1,0 +1,34 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=4
+
+_global_script_classes=[ {
+"base": "Node2D",
+"class": "SlotTile",
+"language": "GDScript",
+"path": "res://scenes/SlotTile.gd"
+} ]
+_global_script_class_icons={
+"SlotTile": ""
+}
+
+[application]
+
+config/name="SlotFight"
+run/main_scene="res://scenes/Main.tscn"
+config/icon="res://icon.png"
+
+[display]
+
+window/size/width=1920
+window/size/height=1080
+window/size/test_width=640
+window/size/test_height=360
+window/stretch/mode="2d"
+window/stretch/aspect="keep"
