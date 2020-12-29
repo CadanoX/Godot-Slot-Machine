@@ -54,6 +54,7 @@ onready var rows := tiles_per_reel + extra_tiles
 
 enum State {OFF, ON, STOPPED}
 var state = State.OFF
+var result := {}
 
 # Stores SlotTile instances
 const tiles := []
@@ -62,17 +63,19 @@ const grid_pos := []
 
 # 1/speed*runtime*reels times
 # Stores the desured number of movements per reel
-onready var total_runs :int = int(runtime * speed_norm)
+onready var expected_runs :int = int(runtime * speed_norm)
 # Stores the current number of movements per reel
-var runs_per_reel := []
+var tiles_moved_per_reel := []
 # When force stopped, stores the current number of movements 
 var runs_stopped := 0
+# Store the runs independent of how they are achieved
+var total_runs : int
 
 func _ready():
   # Initializes grid of tiles
   for col in reels:
     grid_pos.append([])
-    runs_per_reel.append(0)
+    tiles_moved_per_reel.append(0)
     for row in range(rows):
       # Position extra tiles above and below the viewport
       grid_pos[col].append(Vector2(col, row-0.5*extra_tiles) * tile_size)
@@ -97,6 +100,10 @@ func start() -> void:
   # Only start if it is not running yet
   if state == State.OFF:
     state = State.ON
+    total_runs = expected_runs
+    # Ask server for result
+    _get_result()
+    print(result)
     # Spins all reels
     for reel in reels:
       _spin_reel(reel)
@@ -109,13 +116,14 @@ func stop():
   # Tells the machine to stop at the next possible moment
   state = State.STOPPED
   # Store the current runs of the first reel
+  # Add runs to update the tiles to the result images
   runs_stopped = current_runs()
-
+  total_runs = runs_stopped + tiles_per_reel + 1
 
 # Is called when the animation stops
 func _stop() -> void:
   for reel in reels:
-    runs_per_reel[reel] = 0
+    tiles_moved_per_reel[reel] = 0
   state = State.OFF
   emit_signal("stopped")
 
@@ -133,35 +141,52 @@ func _move_tile(tile :SlotTile) -> void:
   tile.move_by(Vector2(0, tile_size.y))
   # The reel will move further through the _on_tile_moved function
   
-func _on_tile_moved(tile: SlotTile, _nodePath) -> void:
-  # If tile moved out of the viewport, move it to the invisible row at the top
-  if (tile.position.y > grid_pos[0][-1].y):
-    tile.position.y = grid_pos[0][0].y
-    # Set a new random texture
-    tile.set_texture(_randomTexture())
-    
+func _on_tile_moved(tile: SlotTile, _nodePath) -> void:    
   # Calculates the reel that the tile is on
   var reel := int(tile.position.x / tile_size.x)
   # Count how many tiles moved per reel
-  runs_per_reel[reel] += 1
-  # Divide it by the number of tiles to know how often the whole reel moved
-  # Since this function is called by each tile, the number changes (e.g. for 6 tiles: 1/6, 2/6, ...)
-  # We use ceil, so that both 1/7, as well as 7/7 return that the reel ran 1 time
+  tiles_moved_per_reel[reel] += 1
   var reel_runs := current_runs(reel)
 
-  # Stop moving after the reel ran total_runs times
+  # If tile moved out of the viewport, move it to the invisible row at the top
+  if (tile.position.y > grid_pos[0][-1].y):
+    tile.position.y = grid_pos[0][0].y
+  # Set a new random texture
+  var current_idx = total_runs - reel_runs
+  if (current_idx < tiles_per_reel):
+    var result_texture = pictures[result.tiles[reel][current_idx]]
+    tile.set_texture(result_texture)
+  else:
+   tile.set_texture(_randomTexture())
+
+
+  # Stop moving after the reel ran expected_runs times
   # Or if the player stopped it
-  if ((state == State.ON && reel_runs != total_runs) ||
-    (state == State.STOPPED && reel_runs < runs_stopped)):
+  if (state != State.OFF && reel_runs != total_runs):
     tile.move_by(Vector2(0, tile_size.y))
   else: # stop moving this reel
     tile.spin_down()
     # When last reel stopped, machine is stopped
+    print(str(reel) + " - " + str(reels))
     if reel == reels - 1:
       _stop()
 
+# Divide it by the number of tiles to know how often the whole reel moved
+# Since this function is called by each tile, the number changes (e.g. for 6 tiles: 1/6, 2/6, ...)
+# We use ceil, so that both 1/7, as well as 7/7 return that the reel ran 1 time
 func current_runs(reel := 0) -> int:
-  return int(ceil(float(runs_per_reel[reel]) / rows))
+  return int(ceil(float(tiles_moved_per_reel[reel]) / rows))
 
 func _randomTexture() -> String:
   return pictures[randi() % pictures.size()]
+
+func _get_result() -> void:
+  result = {
+    "tiles": [
+      [ 0,0,0,0 ],
+      [ 0,0,0,0 ],
+      [ 0,0,0,0 ],
+      [ 0,0,0,0 ],
+      [ 0,0,0,0 ]
+    ]
+  }
